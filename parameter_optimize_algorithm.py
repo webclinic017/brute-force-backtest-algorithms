@@ -61,7 +61,7 @@ def run(df_survived_all, df_elite_all, df_backtest_chunk):
     #---      ---#
 
     #--- Find Best param ---#
-    df_servived_chunk = df_servived_chunk.sort_values(by="time_EFFICIENCY", ascending=False)
+    df_servived_chunk = df_servived_chunk.sort_values(by="time_data_EFFICIENCY", ascending=False)
     df_servived_chunk.reset_index(drop=True, inplace=True) # DONT REMOVE
 
     try:
@@ -70,7 +70,7 @@ def run(df_survived_all, df_elite_all, df_backtest_chunk):
     except:
         list_params = [0,0,0,0]
 
-        df_elite_chunk = pd.DataFrame({'PARAMS_SERIES': [list_params], 'time_EFFICIENCY': [0]})
+        df_elite_chunk = pd.DataFrame({'PARAMS_SERIES': [list_params], 'time_data_EFFICIENCY': [0]})
     
     result_type = "type_A"
     df_elite_chunk["TYPE"] = result_type
