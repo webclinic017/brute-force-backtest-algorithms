@@ -30,9 +30,9 @@ def create_df(df):
     input_Vol_Slow   = int( 14*days  /60)
     input_VolumeUSD  = int( 30*days  /60)
     
-    df["HighestRange"] = df["High"].rolling(input_TR_length).max()
-    df["LowestRange"]  = df["Low"].rolling(input_TR_length).min()
-    df["NATR"]         = ta.natr(df[f"HighestRange"], df[f"LowestRange"], df["Close"].shift(1), length=input_ATR_length)
+    df["highestRange"] = df["high"].rolling(input_TR_length).max()
+    df["lowestRange"]  = df["low"].rolling(input_TR_length).min()
+    df["normATR"]         = ta.normATR(df[f"highestRange"], df[f"lowestRange"], df["close"].shift(1), length=input_ATR_length)
     df["Rapid_Vol"]    = ta.sma(df["VolumeUSD"], length = input_Vol_Rapid)
     df["Slow_Vol"]     = ta.sma(df["VolumeUSD"], length = input_Vol_Slow)
     df["VolRatio"]     = ((df["Rapid_Vol"]/df["Slow_Vol"])*100)-100
@@ -42,47 +42,47 @@ def create_df(df):
 
 #--------------------------------------------------------------------------------
 
-def run(debug, ActivationTime, discord_server):
+def run(debug, activationTime, discord_server):
 
     if debug == True:
-        list_Symbol = ["BTCUSDT", "ETHUSDT"]
-        df_screened = pd.DataFrame({'Ticker':list_Symbol, 'NATR':[0,0], 'VolRatio':[0,0], 'VolUSD_SMA':[0,0]})
+        list_symbol = ["BTCUSDT", "ETHUSDT"]
+        df_screened = pd.DataFrame({'tickerSymbol':list_symbol, 'normATR':[0,0], 'VolRatio':[0,0], 'VolUSD_SMA':[0,0]})
 
     else:
-        os.makedirs(f"{working_dir}/static/SCREEN/{ActivationTime}", exist_ok=True)
+        os.makedirs(f"{working_dir}/static/SCREEN/{activationTime}", exist_ok=True)
 
-        list_Symbol = binance_data.fetch_all_symbols()
+        list_symbol = binance_data.fetch_all_symbols()
 
-        list_NATR       = []
-        list_VolRatio   = []
+        list_normATR       = []
+        list_volumeRatio   = []
         list_VolUSD_SMA = []
 
-        for Ticker in list_Symbol:
+        for tickerSymbol in list_symbol:
             try:
-                df = kline(Ticker, 33, Client.KLINE_INTERVAL_1HOUR)
+                df = kline(tickerSymbol, 33, Client.KLINE_INTERVAL_1HOUR)
 
                 df = create_df(df)
 
-                df.drop(columns=['HighestRange','LowestRange','Rapid_Vol','Slow_Vol'], inplace=True)
-                df.drop(columns=['CloseTime','Ignore'], inplace=True)
+                df.drop(columns=['highestRange','lowestRange','Rapid_Vol','Slow_Vol'], inplace=True)
+                df.drop(columns=['closeTime','Ignore'], inplace=True)
                 df.dropna(inplace=True)
 
-                value_NATR     = round(df.iloc[-1]["NATR"],2)
+                value_normATR     = round(df.iloc[-1]["normATR"],2)
                 value_VolRatio = round(df.iloc[-1]["VolRatio"],2)
                 value_VolUSD_SMA = round(df.iloc[-1]["VolUSD_SMA"],2)
 
-                list_NATR.append(value_NATR)
-                list_VolRatio.append(value_VolRatio)
+                list_normATR.append(value_normATR)
+                list_volumeRatio.append(value_VolRatio)
                 list_VolUSD_SMA.append(value_VolUSD_SMA)
 
             except:
-                list_NATR.append("NaN")
-                list_VolRatio.append("NaN")
+                list_normATR.append("NaN")
+                list_volumeRatio.append("NaN")
                 list_VolUSD_SMA.append("NaN")
                 continue
 
-        df_screened = pd.DataFrame({'Ticker':list_Symbol, 'NATR':list_NATR, 'VolRatio':list_VolRatio, 'VolUSD_SMA':list_VolUSD_SMA})
-        df_screened["NATR"]       = df_screened["NATR"].apply(pd.to_numeric, errors='coerce')
+        df_screened = pd.DataFrame({'tickerSymbol':list_symbol, 'normATR':list_normATR, 'VolRatio':list_volumeRatio, 'VolUSD_SMA':list_VolUSD_SMA})
+        df_screened["normATR"]       = df_screened["normATR"].apply(pd.to_numeric, errors='coerce')
         df_screened["VolRatio"]   = df_screened["VolRatio"].apply(pd.to_numeric, errors='coerce')
         df_screened["VolUSD_SMA"] = df_screened["VolUSD_SMA"].apply(pd.to_numeric, errors='coerce')
         df_screened = df_screened.sort_values(by="VolUSD_SMA", ascending=False)
@@ -92,100 +92,100 @@ def run(debug, ActivationTime, discord_server):
 
         #df_screened = df_screened.drop(df_screened.loc[df_screened['VolRatio']<0].index)
 
-        len_list_Symbol = len(list_Symbol)
+        len_list_symbol = len(list_symbol)
 
         step = 0.2
-        for drop_NATR in np.arange(0 , 100 , step):
-            drop_NATR_df = df_screened.drop(df_screened.loc[df_screened['NATR'] < drop_NATR].index)
-            len_drop_NATR = len(drop_NATR_df['Ticker'].tolist())
+        for drop_normATR in np.arange(0 , 100 , step):
+            drop_normATR_df = df_screened.drop(df_screened.loc[df_screened['normATR'] < drop_normATR].index)
+            len_drop_normATR = len(drop_normATR_df['tickerSymbol'].tolist())
             
             criteria = 20 # %
 
-            if len_drop_NATR < int(len_list_Symbol*(criteria*0.01)) :
-                drop_NATR = drop_NATR - step
+            if len_drop_normATR < int(len_list_symbol*(criteria*0.01)) :
+                drop_normATR = drop_normATR - step
                 break
 
         step = 10000
-        for drop_VolUSD in np.arange(0 , 999999999999 , step):
-            VolUSD_SMA_df = df_screened.drop(df_screened.loc[df_screened['VolUSD_SMA'] < drop_VolUSD].index)
-            len_VolUSD_SMA = len(VolUSD_SMA_df['Ticker'].tolist())
+        for drop_volumeInUSD in np.arange(0 , 999999999999 , step):
+            VolUSD_SMA_df = df_screened.drop(df_screened.loc[df_screened['VolUSD_SMA'] < drop_volumeInUSD].index)
+            len_VolUSD_SMA = len(VolUSD_SMA_df['tickerSymbol'].tolist())
 
             criteria = 20 # %
 
-            if len_VolUSD_SMA < int(len_list_Symbol*(criteria*0.01)) :
-                drop_VolUSD = drop_VolUSD - step
+            if len_VolUSD_SMA < int(len_list_symbol*(criteria*0.01)) :
+                drop_volumeInUSD = drop_volumeInUSD - step
                 break
 
-        # TOP 50% of NATR & Volume
-        df_screened = df_screened.drop(df_screened.loc[df_screened['NATR'] < drop_NATR].index)
-        df_screened = df_screened.drop(df_screened.loc[df_screened['VolUSD_SMA'] < drop_VolUSD].index)
+        # TOP 50% of normATR & volume
+        df_screened = df_screened.drop(df_screened.loc[df_screened['normATR'] < drop_normATR].index)
+        df_screened = df_screened.drop(df_screened.loc[df_screened['VolUSD_SMA'] < drop_volumeInUSD].index)
         df_screened.reset_index(drop=True, inplace=True)
 
-        list_Symbol = df_screened['Ticker'].tolist()
+        list_symbol = df_screened['tickerSymbol'].tolist()
 
-        len_list_Symbol = len(list_Symbol)
+        len_list_symbol = len(list_symbol)
 
         print("passed screened ↓")
-        print(f"Screened Symbol Count -> {len_list_Symbol}")
+        print(f"Screened symbol Count -> {len_list_symbol}")
 
         print(df_screened)
         
         #---------------------------------------- UPLOAD ----------------------------------------------------------
         
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = f"./config/GCP_marketstar.json"
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = f"./config/googleCloud_project.json"
         
         client_storage = storage.Client()
         
-        bucket_name = "bankof3v_bucket"
+        bucket_name = "project_bucket"
         
         bucket = client_storage.get_bucket(bucket_name)
 
-        GCS_path = f'SCREEN/{ActivationTime}.csv'
-        LOCAL_path = f'{working_dir}/static/{GCS_path}'
+        googleCloudStorage_path = f'SCREEN/{activationTime}.csv'
+        local_path = f'{working_dir}/static/{googleCloudStorage_path}'
         
-        df_screened.to_csv(LOCAL_path, index=False)
+        df_screened.to_csv(local_path, index=False)
         
-        blob_data = bucket.blob(GCS_path)
+        blob_data = bucket.blob(googleCloudStorage_path)
         
-        blob_data.upload_from_filename(LOCAL_path)
+        blob_data.upload_from_filename(local_path)
         
-        logging.info(f"Successfuly Uploaded Screener Result -> {LOCAL_path}")
+        logging.info(f"Successfully Uploaded Screener Result -> {local_path}")
         discorder.send("Screen SUCCESS", 
-            f"{ActivationTime}",
-            f"{len_list_Symbol} symbols -> {list_Symbol}", 
-            username = vm.GCP_instance,
+            f"{activationTime}",
+            f"{len_list_symbol} symbols -> {list_symbol}", 
+            username = vm.googleCloud_instance,
             server = discord_server)
 
-    return list_Symbol
+    return list_symbol
 
 #____________________________________________________________________________________-
 
-def kline(Ticker, days, KLINE_INTERVAL):
+def kline(tickerSymbol, days, KLINE_INTERVAL):
 
     client = Client(pw.binance_api_key, pw.binance_api_secret)
 
-    kline_data = client.futures_historical_klines(Ticker, KLINE_INTERVAL,  f"{days} day ago UTC")
+    kline_data = client.futures_historical_klines(tickerSymbol, KLINE_INTERVAL,  f"{days} day ago UTC")
 
-    df = pd.DataFrame(kline_data, columns = ['OpenTime','Open','High','Low','Close','Volume','CloseTime','VolumeUSD','Trades','TakerBuyVolume','TakerBuyVolumeUSD','Ignore'])
+    df = pd.DataFrame(kline_data, columns = ['openTime','open','high','low','close','volume','closeTime','VolumeUSD','trades','TakerBuyVolume','TakerBuyVolumeUSD','Ignore'])
 
-    df['OpenTime'] = df['OpenTime']/1000
-    df['CloseTime'] = df['CloseTime']/1000
+    df['openTime'] = df['openTime']/1000
+    df['closeTime'] = df['closeTime']/1000
 
-    # df['OpenTime'] = pd.to_datetime(df['OpenTime'].astype(int), unit='s')
-    # df['CloseTime'] = pd.to_datetime(df['CloseTime'].astype(int), unit='s')
+    # df['openTime'] = pd.to_datetime(df['openTime'].astype(int), unit='s')
+    # df['closeTime'] = pd.to_datetime(df['closeTime'].astype(int), unit='s')
 
-    df["Open"]   = df["Open"].apply(lambda x: float(x))
-    df["High"]   = df["High"].apply(lambda x: float(x))
-    df["Low"]    = df["Low"].apply(lambda x: float(x))
-    df["Close"]  = df["Close"].apply(lambda x: float(x))
-    df["Volume"] = df["Volume"].apply(lambda x: float(x))
-    df["Trades"] = df["Trades"].apply(lambda x: float(x))
+    df["open"]   = df["open"].apply(lambda x: float(x))
+    df["high"]   = df["high"].apply(lambda x: float(x))
+    df["low"]    = df["low"].apply(lambda x: float(x))
+    df["close"]  = df["close"].apply(lambda x: float(x))
+    df["volume"] = df["volume"].apply(lambda x: float(x))
+    df["trades"] = df["trades"].apply(lambda x: float(x))
     df["VolumeUSD"] = df["VolumeUSD"].apply(lambda x: float(x))
     df["TakerBuyVolumeUSD"] = df["TakerBuyVolumeUSD"].apply(lambda x: float(x))
     df["TakerBuyVolume"] = df["TakerBuyVolume"].apply(lambda x: float(x))
     df["Ignore"] = df["Ignore"].apply(lambda x: float(x))
 
-    logging.info(f"Created History Database of {Ticker} for {days} by {KLINE_INTERVAL} timeframe")
+    logging.info(f"Created History Database of {tickerSymbol} for {days} by {KLINE_INTERVAL} timeFrame")
 
     return df
 

@@ -1,4 +1,4 @@
-import sys, pathlib, time, os
+import sys, pathlib, time_data, os
 outside_dir = pathlib.Path(__file__).resolve().parent.parent.parent 
 working_dir = pathlib.Path(__file__).resolve().parent.parent 
 current_dir = pathlib.Path(__file__).resolve().parent
@@ -13,7 +13,7 @@ def run(df_survived_all, df_elite_all, df_backtest_chunk):
 
         print(f"original -> {len(df_servived_chunk)} out of {len(df_backtest_chunk)}")
 
-        # ~1~ DROP UNPROFITABLE
+        # ~1~ DROP UNprofitABLE
         df_servived_chunk = df_servived_chunk.loc[df_servived_chunk["SAMPLE_SIZE"] != 0 ]
 
         print(f"SURVIVER ~1~ -> {len(df_servived_chunk)} out of {len(df_backtest_chunk)}")
@@ -25,7 +25,7 @@ def run(df_survived_all, df_elite_all, df_backtest_chunk):
         print(f"SURVIVER ~2~ -> {len(df_servived_chunk)} out of {len(df_backtest_chunk)}")
 
         # ~3~ DROP HUGE UNFIN LOSS
-        df_servived_chunk = df_servived_chunk.sort_values(by="UNFINISHED_PROFIT", ascending=False)
+        df_servived_chunk = df_servived_chunk.sort_values(by="UNFINISHED_profit", ascending=False)
         df_servived_chunk = df_servived_chunk.iloc[0:int((len(df_servived_chunk)*0.7))]
 
         print(f"SURVIVER ~3~ -> {len(df_servived_chunk)} out of {len(df_backtest_chunk)}")
@@ -61,7 +61,7 @@ def run(df_survived_all, df_elite_all, df_backtest_chunk):
     #---      ---#
 
     #--- Find Best param ---#
-    df_servived_chunk = df_servived_chunk.sort_values(by="TIME_EFFICIENCY", ascending=False)
+    df_servived_chunk = df_servived_chunk.sort_values(by="time_data_EFFICIENCY", ascending=False)
     df_servived_chunk.reset_index(drop=True, inplace=True) # DONT REMOVE
 
     try:
@@ -70,7 +70,7 @@ def run(df_survived_all, df_elite_all, df_backtest_chunk):
     except:
         list_params = [0,0,0,0]
 
-        df_elite_chunk = pd.DataFrame({'PARAMS_SERIES': [list_params], 'TIME_EFFICIENCY': [0]})
+        df_elite_chunk = pd.DataFrame({'PARAMS_SERIES': [list_params], 'time_data_EFFICIENCY': [0]})
     
     result_type = "type_A"
     df_elite_chunk["TYPE"] = result_type

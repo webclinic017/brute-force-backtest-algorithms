@@ -1,4 +1,4 @@
-import sys, pathlib, time, os
+import sys, pathlib, time_data, os
 outside_dir = pathlib.Path(__file__).resolve().parent.parent.parent 
 working_dir = pathlib.Path(__file__).resolve().parent.parent 
 current_dir = pathlib.Path(__file__).resolve().parent
@@ -6,63 +6,63 @@ sys.path.append(str(working_dir))
 import setup, module, parallel, screener
 from tools import report, vm
 
-def run(ActivationTime, timer_global, list_Symbols, stage, Platform, Worker, list_Strategies, days, discord_server):
+def run(activationTime, timer_global, list_symbols, stage, platform, worker, list_strategies, days, discord_server):
 
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = f"{working_dir}/config/GCP_marketstar.json"
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = f"{working_dir}/config/googleCloud_project.json"
 
     total_backtest_counter = 0
     strategy_counter = 0
 
-    for Strategy in list_Strategies:
-        timer_strategy = time.time()
+    for strategy in list_strategies:
+        timer_strategy = time_data.time_data()
 
         symbol_counter = 0
         
-        for Symbol in list_Symbols:
-            timer_symbol = time.time()
+        for symbol in list_symbols:
+            timer_symbol = time_data.time_data()
 
-            df_kline = module.create_df_origin(Symbol, days)
+            df_kline = module.create_df_origin(symbol, days)
 
-            if "Devi" in Strategy:
-                backtest_result = parallel.param4(Worker, Strategy, df_kline, stage)
-            if "Rsi" in Strategy:
-                backtest_result = parallel.param3(Worker, Strategy, df_kline, stage)
+            if "Devi" in strategy:
+                backtest_result = parallel.param4(worker, strategy, df_kline, stage)
+            if "Rsi" in strategy:
+                backtest_result = parallel.param3(worker, strategy, df_kline, stage)
 
             df_bt_result = module.create_df_backtest(backtest_result)
 
-            df_bt_result = module.calc_result(df_kline, df_bt_result, Symbol, Strategy, days)
+            df_bt_result = module.calc_result(df_kline, df_bt_result, symbol, strategy, days)
 
-            module.upload_gcs(df_bt_result, stage, Strategy, ActivationTime, Symbol)
+            module.upload_googleCloudStorage(df_bt_result, stage, strategy, activationTime, symbol)
 
             symbol_counter += 1
             total_backtest_counter += 1
 
-            report.backtest("symbol", discord_server, list_Symbols, list_Strategies, timer_symbol, timer_strategy,\
-                timer_global, Symbol, Strategy, ActivationTime, symbol_counter, strategy_counter, total_backtest_counter)
+            report.backtest("symbol", discord_server, list_symbols, list_strategies, timer_symbol, timer_strategy,\
+                timer_global, symbol, strategy, activationTime, symbol_counter, strategy_counter, total_backtest_counter)
         
         strategy_counter += 1
-        report.backtest("strategy", discord_server, list_Symbols, list_Strategies, timer_symbol, timer_strategy, timer_global, \
-            Symbol, Strategy, ActivationTime, symbol_counter, strategy_counter, total_backtest_counter)
+        report.backtest("strategy", discord_server, list_symbols, list_strategies, timer_symbol, timer_strategy, timer_global, \
+            symbol, strategy, activationTime, symbol_counter, strategy_counter, total_backtest_counter)
 
 #____________________________________________________________________________________________
 
 if __name__ == "__main__":
 
-    ActivationTime, timer_global, stage, Platform, Worker, list_Strategies, days, discord_server = setup.run()
+    activationTime, timer_global, stage, platform, worker, list_strategies, days, discord_server = setup.run()
 
     try:
 
-        list_Symbols = screener.run(stage, ActivationTime, discord_server)
+        list_symbols = screener.run(stage, activationTime, discord_server)
 
-        run(ActivationTime, timer_global, list_Symbols, stage, Platform, Worker, list_Strategies, days, discord_server)
+        run(activationTime, timer_global, list_symbols, stage, platform, worker, list_strategies, days, discord_server)
 
-        vm.GCP_stop(Platform, vm.GCP_project,vm.GCP_zone,vm.GCP_instance)
+        vm.googleCloud_stop(platform, vm.googleCloud_project,vm.googleCloud_zone,vm.googleCloud_instance)
 
     except Exception as e:
 
         report.error("backtest error", e)
 
-        vm.GCP_stop(Platform, vm.GCP_project,vm.GCP_zone,vm.GCP_instance)
+        vm.googleCloud_stop(platform, vm.googleCloud_project,vm.googleCloud_zone,vm.googleCloud_instance)
 
         
         

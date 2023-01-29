@@ -4,7 +4,7 @@ working_dir = pathlib.Path(__file__).resolve().parent.parent
 current_dir = pathlib.Path(__file__).resolve().parent
 sys.path.append(str(working_dir))
 sys.path.append(f"{str(working_dir)}/config")
-import inquirer, logging, datetime, time
+import inquirer, logging, datetime, time_data
 from inquirer.themes import Default
 from tools import vm
 
@@ -21,46 +21,46 @@ class WorkplaceFriendlyTheme(Default):
 def run():
     logging.basicConfig(level=logging.INFO,format="%(asctime)s : %(message)s")
 
-    # ActivationTime
-    ActivationTime = datetime.datetime.now().strftime('%y%m%d%H%M')
+    # activationTime
+    activationTime = datetime.datetime.now().strftime('%y%m%d%H%M')
 
     # debug_questions
     debug_questions  = [inquirer.List('debug', message="Debug?", choices=[True,False],),]
     debug_answers    = inquirer.prompt(debug_questions)
     debug            = debug_answers["debug"]
 
-    # Strategy_questions
-    Strategy_questions = [
+    # strategy_questions
+    strategy_questions = [
         inquirer.Checkbox(
-            "list_Strategies",
+            "list_strategies",
             message="Which Strategies do you wanna backtest?",
             choices=["KanL","KanS","DeviL", "DeviS", "RsiL", "RsiS"]),]
-    list_Strategies = inquirer.prompt(Strategy_questions, theme=WorkplaceFriendlyTheme())
-    list_Strategies = list_Strategies["list_Strategies"]
+    list_strategies = inquirer.prompt(strategy_questions, theme=WorkplaceFriendlyTheme())
+    list_strategies = list_strategies["list_strategies"]
 
     # # # # debug auto fill # # # 
     if debug == True:
-        Platform = "LOCAL"
-        core = int(os.cpu_count()/2)
+        platform = "LOCAL"
+        coreLine = int(os.cpu_count()/2)
         list_chunk_days = [4]
         chunk_div_size  = 3
     # # # # # # # # # # # # # # # 
 
     else:
-        # Platform_questions
-        Platform_questions  = [inquirer.List('Platform', message="Which Platform?", choices=["LOCAL",'GCP', 'Azure', "AWS"],),]
-        Platform_answers    = inquirer.prompt(Platform_questions)
-        Platform            = Platform_answers["Platform"]
+        # platform_questions
+        platform_questions  = [inquirer.List('platform', message="Which platform?", choices=["LOCAL",'googleCloud', 'Azure', "aws"],),]
+        platform_answers    = inquirer.prompt(platform_questions)
+        platform            = platform_answers["platform"]
 
-        # core_questions
-        CPUs = os.cpu_count()
-        CPUsHalf = int(CPUs/2)
-        CPUsHalfHalf = int(CPUsHalf/2)
+        # coreLine_questions
+        coreLine_numbers = os.cpu_count()
+        coreLine_numbersHalf = int(coreLine_numbers/2)
+        coreLine_numbersHalfHalf = int(coreLine_numbersHalf/2)
 
-        # core_questions
-        core_questions  = [inquirer.List('core', message="How many workers?", choices=[CPUsHalf, CPUs],),]
-        core_answers    = inquirer.prompt(core_questions)
-        core            = core_answers["core"]
+        # coreLine_questions
+        coreLine_questions  = [inquirer.List('coreLine', message="How many workers?", choices=[coreLine_numbersHalf, coreLine_numbers],),]
+        coreLine_answers    = inquirer.prompt(coreLine_questions)
+        coreLine            = coreLine_answers["coreLine"]
 
         # chunk_days_questions
         chunk_days_questions = [
@@ -77,13 +77,13 @@ def run():
         chunk_div_size            = chunk_div_size_answers["chunk_div_size"]
 
     # cloud compute instance
-    if Platform == "GCP":
-        project,zone,instance= vm.GCP_project,vm.GCP_zone,vm.GCP_instance
-    elif Platform == "AWS":
-        instance = vm.AWS_instance
-    elif Platform == "Azure":
+    if platform == "googleCloud":
+        project,zone,instance= vm.googleCloud_project,vm.googleCloud_zone,vm.googleCloud_instance
+    elif platform == "aws":
+        instance = vm.aws_instance
+    elif platform == "Azure":
         project,zone,instance= "?","?","?"
-    elif Platform == "LOCAL":
+    elif platform == "LOCAL":
         project,zone,instance="?","?","?"
 
     # Discord server
@@ -95,20 +95,20 @@ def run():
     # confirm_questions
     confirm_questions = [inquirer.List('confirm', 
                 message=f"confirm={debug},\
-                        Platform={Platform}:{instance},\
-                        cores={core},\
+                        platform={platform}:{instance},\
+                        coreLines={coreLine},\
                         list_chunk_days={list_chunk_days},\
                         chunk_div_size={chunk_div_size},\
-                        list_Strategies={list_Strategies}",\
+                        list_strategies={list_strategies}",\
                         choices=["No. Quit", "Yes"],),]
     confirm_answers = inquirer.prompt(confirm_questions)
     confirm         = confirm_answers["confirm"]
 
     # timer
     if confirm == "Yes":
-        timer_global = time.time()
+        timer_global = time_data.time_data()
         
-        return ActivationTime, timer_global, debug, Platform, core, list_chunk_days, chunk_div_size, list_Strategies, discord_server
+        return activationTime, timer_global, debug, platform, coreLine, list_chunk_days, chunk_div_size, list_strategies, discord_server
     else:
         quit()
 
