@@ -1,5 +1,5 @@
 # Genetic Backtest Algorithm
-import sys, pathlib, time_data, os
+import sys, pathlib, time, os
 outside_dir = pathlib.Path(__file__).resolve().parent.parent.parent 
 working_dir = pathlib.Path(__file__).resolve().parent.parent 
 current_dir = pathlib.Path(__file__).resolve().parent

@@ -70,15 +70,15 @@ def backtest_result(df_kline_chunk,
         for sec_holdtime in series_holdSec:
             list_hour_holdtime = (list(map(lambda x:round(x/(60*60),1), sec_holdtime)))
 
-            # 1, Hold time_data hourly average. 
+            # 1, Hold time hourly average. 
             average_holdHour = round(np.mean(list_hour_holdtime),2)
             total_holdHour = sum(list_hour_holdtime)
 
-            # 2, Max Min hold time_data. 
+            # 2, Max Min hold time. 
             max_holdHour = 0 if len(list_hour_holdtime) == 0 else max(list_hour_holdtime)
             min_holdHour =  0 if len(list_hour_holdtime) == 0 else min(list_hour_holdtime)
 
-            # 3, Winning Losing average hold time_data. 
+            # 3, Winning Losing average hold time. 
             list_win_holdHour = [hour_holdtime for hour_holdtime, net_profit in zip(list_hour_holdtime, row["NET_profit_SERIES"]) if net_profit > 0]
             list_lose_holdHour = [hour_holdtime for hour_holdtime, net_profit in zip(list_hour_holdtime, row["NET_profit_SERIES"]) if net_profit <= 0]
 

@@ -100,14 +100,14 @@ def upload_googleCloudStorage(df_bt_result,stage,strategy,activationTime,symbol)
     blob_data.upload_from_filename(local_path)  
 #____________________________________________________________
 
-def func_backtest_entry(index,close,backtestPyramiding,entryTimes,time_data):
+def func_backtest_entry(index,close,backtestPyramiding,entryTimes,time):
 
     indexEntry = index
     entryPrice = close
     backtestPyramiding = 1
-    entryTimes.append(time_data) 
+    entryTimes.append(time) 
 
-    return indexEntry, entryPrice, backtestPyramiding,entryTimes,time_data
+    return indexEntry, entryPrice, backtestPyramiding,entryTimes,time
 #____________________________________________________________
 
 def func_backtest_exit( side,
@@ -117,7 +117,7 @@ def func_backtest_exit( side,
                         list_netp,
                         exitTimes,
                         list_paperLoss,
-                        time_data,
+                        time,
                         entryPrice,
                         indexEntry,
                         indexExit,
@@ -128,7 +128,7 @@ def func_backtest_exit( side,
     exitPrice = close
     backtestPyramiding = 0
 
-    exitTimes.append(time_data)
+    exitTimes.append(time)
 
     worstPrice = entryPrice
 

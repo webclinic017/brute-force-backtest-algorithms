@@ -1,4 +1,4 @@
-import sys, pathlib, time_data, os
+import sys, pathlib, time, os
 outside_dir = pathlib.Path(__file__).resolve().parent.parent.parent 
 working_dir = pathlib.Path(__file__).resolve().parent.parent 
 current_dir = pathlib.Path(__file__).resolve().parent
@@ -14,12 +14,12 @@ def run(activationTime, timer_global, list_symbols, stage, platform, worker, lis
     strategy_counter = 0
 
     for strategy in list_strategies:
-        timer_strategy = time_data.time_data()
+        timer_strategy = time.time()
 
         symbol_counter = 0
         
         for symbol in list_symbols:
-            timer_symbol = time_data.time_data()
+            timer_symbol = time.time()
 
             df_kline = module.create_df_origin(symbol, days)
 

@@ -4,7 +4,7 @@ working_dir = pathlib.Path(__file__).resolve().parent.parent
 current_dir = pathlib.Path(__file__).resolve().parent
 sys.path.append(str(working_dir))
 sys.path.append(f"{str(working_dir)}/config")
-import inquirer, logging, datetime, time_data
+import inquirer, logging, datetime, time
 from inquirer.themes import Default
 from tools import vm
 
@@ -106,7 +106,7 @@ def run():
 
     # timer
     if confirm == "Yes":
-        timer_global = time_data.time_data()
+        timer_global = time.time()
         
         return activationTime, timer_global, debug, platform, coreLine, list_chunk_days, chunk_div_size, list_strategies, discord_server
     else:
